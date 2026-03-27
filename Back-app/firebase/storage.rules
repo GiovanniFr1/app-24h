@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Profile photos: owner can write, everyone authenticated can read.
+    match /users/{uid}/profile.jpg {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.size < 5 * 1024 * 1024  // max 5MB
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Driver documents (CNH, etc.): owner can write, admins can read.
+    match /users/{uid}/documents/{file} {
+      allow read: if request.auth != null && (
+        request.auth.uid == uid ||
+        request.auth.token.role == 'admin'
+      );
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.size < 10 * 1024 * 1024;  // max 10MB
+    }
+  }
+}

@@ -1,0 +1,33 @@
+meta {
+  name: Driver Register
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users/register/
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{driverEmail}}",
+    "password": "{{driverPassword}}",
+    "full_name": "Driver Demo",
+    "phone": "{{driverPhone}}",
+    "role": "DRIVER",
+    "cpf": "{{driverCpf}}",
+    "cnh": "{{driverCnh}}",
+    "document_cpf_url": "{{driverDocumentCpfUrl}}",
+    "document_cnh_url": "{{driverDocumentCnhUrl}}",
+    "document_selfie_url": "{{driverDocumentSelfieUrl}}",
+    "vehicle_plate": "{{driverVehiclePlate}}",
+    "vehicle_model": "{{driverVehicleModel}}",
+    "vehicle_year": {{driverVehicleYear}}
+  }
+}

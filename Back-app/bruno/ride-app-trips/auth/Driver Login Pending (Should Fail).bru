@@ -1,0 +1,22 @@
+meta {
+  name: Driver Login Pending (Should Fail)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users/login/
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{driverEmail}}",
+    "password": "{{driverPassword}}"
+  }
+}

@@ -1,0 +1,28 @@
+meta {
+  name: Passenger Login
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users/login/
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{passengerEmail}}",
+    "password": "{{passengerPassword}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body?.access) {
+    bru.setEnvVar("passengerAccessToken", res.body.access);
+  }
+}

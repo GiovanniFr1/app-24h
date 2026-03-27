@@ -1,0 +1,24 @@
+meta {
+  name: Passenger Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users/register/
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{passengerEmail}}",
+    "password": "{{passengerPassword}}",
+    "full_name": "Passenger Demo",
+    "role": "PASSENGER"
+  }
+}

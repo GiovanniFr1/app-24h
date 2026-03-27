@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if caller is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Helper: check custom claim role
+    function hasRole(role) {
+      return isAuth() && request.auth.token.role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Users can read/write their own document.
+    // Admins can read all user documents.
+    match /users/{uid} {
+      allow read: if isAuth() && (request.auth.uid == uid || isAdmin());
+      allow write: if isAuth() && request.auth.uid == uid;
+    }
+
+    // Drivers collection (online status + location for matching).
+    // Admins can read all.
+    match /drivers/{uid} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.auth.uid == uid;
+    }
+
+    // Trips: passengers and assigned driver can read.
+    // Admins can read all.
+    match /trips/{tripId} {
+      allow read: if isAuth() && (
+        resource.data.passengerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuth();
+      allow update: if isAuth() && (
+        resource.data.passengerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Payments: passenger can read their own. Admins can read all.
+    match /payments/{paymentId} {
+      allow read: if isAuth() && (
+        resource.data.passengerId == request.auth.uid || isAdmin()
+      );
+      allow create: if isAuth();
+      allow update: if false; // only Cloud Functions update payments
+    }
+
+    // Config (pricing, bairros): all authenticated users can read.
+    match /config/{doc} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+  }
+}
