@@ -7,11 +7,13 @@ import '../../core/providers/ride_request_provider.dart';
 class TripStatusCard extends StatelessWidget {
   final RideRequestState state;
   final VoidCallback onCancel;
+  final VoidCallback onSafetyTap;
 
   const TripStatusCard({
     super.key,
     required this.state,
     required this.onCancel,
+    required this.onSafetyTap,
   });
 
   @override
@@ -52,33 +54,36 @@ class TripStatusCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ESTIMATED ARRIVAL',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primary,
-                                letterSpacing: 2.0,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'CHEGADA ESTIMADA',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primary,
+                                  letterSpacing: 2.0,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '12 mins',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.onSurface,
+                              Text(
+                                '12 mins',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.onSurface,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'DISTANCE',
+                              'DISTÂNCIA',
                               style: GoogleFonts.inter(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -170,10 +175,14 @@ class TripStatusCard extends StatelessWidget {
                         Text(
                           driverName,
                           style: GoogleFonts.plusJakartaSans(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.onSurface),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         Text(
                           vehicleInfo,
                           style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: AppTheme.onSurfaceVariant),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         const SizedBox(height: 8),
                         Row(
@@ -185,7 +194,7 @@ class TripStatusCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
-                                'PRO RIDER',
+                                'PILOTO PRO',
                                 style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.tertiary, letterSpacing: 1.5),
                               ),
                             ),
@@ -197,7 +206,7 @@ class TripStatusCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
-                                '5K+ RIDES',
+                                '5K+ CORRIDAS',
                                 style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.onSurfaceVariant, letterSpacing: 1.5),
                               ),
                             ),
@@ -256,7 +265,7 @@ class TripStatusCard extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        'Details',
+                        'Detalhes',
                         style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.onPrimaryContainer),
                       ),
                     ),
@@ -274,28 +283,43 @@ class TripStatusCard extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    GestureDetector(
-                      onTap: onCancel,
-                      child: Row(
-                        children: [
-                          const Icon(Icons.cancel, color: AppTheme.onSurfaceVariant, size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Cancel Ride',
-                            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.onSurfaceVariant),
-                          ),
-                        ],
+                    Flexible(
+                      child: GestureDetector(
+                        onTap: onCancel,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.cancel, color: AppTheme.onSurfaceVariant, size: 16),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                'Cancelar',
+                                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.onSurfaceVariant),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    Row(
-                      children: [
-                        const Icon(Icons.shield, color: AppTheme.onSurfaceVariant, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Safety Center',
-                          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: GestureDetector(
+                        onTap: onSafetyTap,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            const Icon(Icons.shield, color: AppTheme.primary, size: 16),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                'Segurança',
+                                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

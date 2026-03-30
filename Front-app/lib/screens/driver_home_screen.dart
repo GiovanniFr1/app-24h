@@ -226,21 +226,21 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.greenAccent.withValues(alpha: 0.2),
+                  color: AppTheme.tertiary.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.attach_money, color: Colors.greenAccent),
+                child: const Icon(Icons.attach_money, color: AppTheme.tertiary),
               ),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Corrida Finalizada', style: TextStyle(color: Colors.white54)),
+                  Text('Corrida Finalizada', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant)),
                   Text(
                     '+ R\$ ${valorGanho.toStringAsFixed(2).replaceAll('.', ',')} adicionados!',
                     style: GoogleFonts.inter(
-                      color: Colors.greenAccent,
+                      color: AppTheme.tertiary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),

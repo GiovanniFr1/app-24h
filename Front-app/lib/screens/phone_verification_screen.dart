@@ -143,7 +143,7 @@ class _PhoneVerificationScreenState
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
+                            color: AppTheme.background.withValues(alpha: 0.5),
                             blurRadius: 20,
                             offset: const Offset(0, 4),
                           ),
@@ -240,7 +240,7 @@ class _PhoneVerificationScreenState
                       Text(
                         _errorMessage!,
                         style: GoogleFonts.inter(
-                          color: Colors.redAccent,
+                          color: AppTheme.error,
                           fontSize: 13,
                         ),
                       ),
@@ -351,7 +351,7 @@ class _PhoneVerificationScreenState
                               width: 24,
                               height: 24,
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: AppTheme.onSurface,
                                 strokeWidth: 2,
                               ),
                             )

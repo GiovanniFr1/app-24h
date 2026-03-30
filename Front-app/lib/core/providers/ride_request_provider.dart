@@ -56,29 +56,19 @@ class RideRequestNotifier extends Notifier<RideRequestState> {
   }) async {
     state = state.copyWith(status: RideRequestStatus.searching);
 
-    try {
-      final tripService = ref.read(tripServiceProvider);
-      final trip = await tripService.requestTrip(
-        origin: origin,
-        destination: destination,
-        price: price,
-      );
-
+    // MOCK: Simular requisição aceita no frontend sem o backend.
+    Future.delayed(const Duration(seconds: 3), () {
       if (state.status != RideRequestStatus.searching) return;
-
-      state = state.copyWith(tripId: trip.id);
-      _startPolling(trip.id);
-    } catch (e) {
-      state = RideRequestState(
-        status: RideRequestStatus.error,
-        errorMessage: 'Não foi possível solicitar a viagem. Verifique a conexão.',
-      );
-    }
+      state = state.copyWith(tripId: 999);
+      _startMockedStatePolling();
+    });
   }
 
-  void _startPolling(int tripId) {
+  void _startMockedStatePolling() {
     _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+    int cycle = 0;
+    
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       final current = state.status;
       if (current == RideRequestStatus.initial ||
           current == RideRequestStatus.completed ||
@@ -87,47 +77,27 @@ class RideRequestNotifier extends Notifier<RideRequestState> {
         return;
       }
 
-      try {
-        final updated = await ref.read(tripServiceProvider).getTrip(tripId);
-
-        if (updated.isCancelled) {
-          _pollingTimer?.cancel();
-          state = const RideRequestState(
-            status: RideRequestStatus.initial,
-            errorMessage: 'Viagem cancelada.',
-          );
-          return;
-        }
-
-        if (updated.isCompleted) {
-          _pollingTimer?.cancel();
-          state = state.copyWith(status: RideRequestStatus.completed);
-          return;
-        }
-
-        if (updated.isInProgress &&
-            current != RideRequestStatus.inTransit &&
-            current != RideRequestStatus.driverArrived) {
-          state = state.copyWith(
-            status: RideRequestStatus.inTransit,
-            driverInfo: updated.driver != null
-                ? {...updated.driver!.toMap(), 'etaMins': 12}
-                : state.driverInfo,
-          );
-          return;
-        }
-
-        if (updated.isAccepted &&
-            current == RideRequestStatus.searching &&
-            updated.driver != null) {
-          state = state.copyWith(
-            status: RideRequestStatus.accepted,
-            driverInfo: updated.driver!.toMap(),
-          );
-          return;
-        }
-      } catch (_) {
-        // Ignora falhas de polling isoladas
+      cycle++;
+      
+      if (cycle == 1) {
+        state = state.copyWith(
+          status: RideRequestStatus.accepted,
+          driverInfo: {
+            'name': 'Carlos Silva',
+            'vehicle': 'Honda NXR 160 Bros • QXY-7788',
+            'photoUrl': 'https://i.pravatar.cc/150?img=11',
+            'etaMins': 3,
+            'rating': 4.98,
+          },
+        );
+      } else if (cycle == 2) {
+        state = state.copyWith(status: RideRequestStatus.driverArrived);
+      } else if (cycle == 3) {
+        state = state.copyWith(status: RideRequestStatus.inTransit);
+      } else if (cycle == 6) {
+        // Demora simulada da corrida
+        state = state.copyWith(status: RideRequestStatus.completed);
+        _pollingTimer?.cancel();
       }
     });
   }

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme.dart';
+import '../core/providers/ride_request_provider.dart';
 
-class SearchingDriverScreen extends StatefulWidget {
+class SearchingDriverScreen extends ConsumerStatefulWidget {
   const SearchingDriverScreen({super.key});
 
   @override
-  State<SearchingDriverScreen> createState() => _SearchingDriverScreenState();
+  ConsumerState<SearchingDriverScreen> createState() => _SearchingDriverScreenState();
 }
 
-class _SearchingDriverScreenState extends State<SearchingDriverScreen> with SingleTickerProviderStateMixin {
+class _SearchingDriverScreenState extends ConsumerState<SearchingDriverScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   @override
@@ -101,13 +103,18 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
 
           // 3. Main Content
           SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Radar Animation
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Radar Animation
                     SizedBox(
                       width: 280,
                       height: 280,
@@ -184,7 +191,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
 
                     // Status Information
                     Text(
-                      'Looking for nearby\nMoto Acre pilots...',
+                      'Procurando pilotos\nMoto Acre próximos...',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         color: AppTheme.onSurface,
@@ -195,7 +202,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Connecting you to the fastest route',
+                      'Conectando você à rota mais rápida',
                       style: GoogleFonts.inter(
                         color: AppTheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
@@ -215,7 +222,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'EST. WAIT',
+                                  'ESPERA EST.',
                                   style: GoogleFonts.inter(
                                     color: const Color(0xFF5e4100),
                                     fontWeight: FontWeight.bold,
@@ -258,7 +265,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'TRAFFIC',
+                                  'TRÂNSITO',
                                   style: GoogleFonts.inter(
                                     color: AppTheme.tertiary,
                                     fontWeight: FontWeight.bold,
@@ -268,7 +275,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Light',
+                                  'Leve',
                                   style: GoogleFonts.plusJakartaSans(
                                     color: AppTheme.tertiary,
                                     fontWeight: FontWeight.w900,
@@ -302,7 +309,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                '3 Pilots nearby',
+                                '3 Pilotos próximos',
                                 style: GoogleFonts.inter(
                                   color: AppTheme.onSurface.withValues(alpha: 0.8),
                                   fontWeight: FontWeight.w500,
@@ -312,7 +319,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                             ],
                           ),
                           Text(
-                            'SCANNING SECTOR 7G',
+                            'RASTREANDO SETOR 7G',
                             style: GoogleFonts.inter(
                               color: AppTheme.onSurfaceVariant,
                               fontWeight: FontWeight.bold,
@@ -328,12 +335,11 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
               ),
             ),
           ),
+        ),
           
           // Action Area
-          Positioned(
-            bottom: 48,
-            left: 24,
-            right: 24,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
             child: Column(
               children: [
                 Container(
@@ -351,14 +357,17 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                         borderRadius: BorderRadius.circular(9999),
                       ),
                     ),
-                    onPressed: () => Navigator.pop(context), // Cancel action
+                    onPressed: () {
+                      ref.read(rideRequestProvider.notifier).cancelRide();
+                      Navigator.pop(context);
+                    }, // Cancel action
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.close, color: AppTheme.secondary),
                         const SizedBox(width: 8),
                         Text(
-                          'CANCEL REQUEST',
+                          'CANCELAR PEDIDO',
                           style: GoogleFonts.plusJakartaSans(
                             color: AppTheme.secondary,
                             fontWeight: FontWeight.bold,
@@ -372,7 +381,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'NO CANCELLATION FEE FOR THE NEXT 2 MINUTES',
+                  'SEM TAXA DE CANCELAMENTO NOS PRÓXIMOS 2 MINUTOS',
                   style: GoogleFonts.inter(
                     color: AppTheme.onSurfaceVariant.withValues(alpha: 0.6),
                     fontWeight: FontWeight.w500,
@@ -383,6 +392,9 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> with Sing
               ],
             ),
           ),
+        ],
+      ),
+    ),
         ],
       ),
     );

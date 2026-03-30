@@ -62,75 +62,59 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Login com E-mail',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 24,
+              right: 24,
+              top: 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Login com E-mail',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: emailController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'E-mail',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppTheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: emailController,
+                  style: GoogleFonts.inter(color: AppTheme.onSurface),
+                  decoration: InputDecoration(
+                    labelText: 'E-mail',
+                    labelStyle: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+                    prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.onSurfaceVariant),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Senha',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppTheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passwordController,
+                  style: GoogleFonts.inter(color: AppTheme.onSurface),
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    labelStyle: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+                    prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.onSurfaceVariant),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  obscureText: true,
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 24),
-              CustomButton(
-                text: 'ENTRAR',
-                onPressed: () {
-                  _loginWithEmail(emailController.text, passwordController.text);
-                },
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'ENTRAR',
+                  onPressed: () {
+                    _loginWithEmail(emailController.text, passwordController.text);
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         );
       },
@@ -230,7 +214,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   // Social Login Actions
                   CustomButton(
-                    text: 'CONTINUE WITH PHONE',
+                    text: 'CONTINUAR COM TELEFONE',
                     icon: Icons.phone_android,
                     onPressed: () {
                       Navigator.push(
@@ -243,7 +227,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 16),
                   
                   CustomButton(
-                    text: 'CONTINUE WITH EMAIL',
+                    text: 'CONTINUAR COM EMAIL',
                     icon: Icons.email_outlined,
                     onPressed: _showEmailLoginSheet,
                   ),
@@ -279,7 +263,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
-                          'OR EXPLORE THE APP',
+                          'OU EXPLORE O APP',
                           style: GoogleFonts.inter(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -299,7 +283,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   TextButton(
                     onPressed: _loginAsGuest,
                     child: Text(
-                      'CONTINUE AS GUEST',
+                      'CONTINUAR COMO CONVIDADO',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
@@ -313,7 +297,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   
                   // Footer
                   Text(
-                    'BY SIGNING UP, YOU AGREE TO OUR TERMS OF SERVICE AND PRIVACY POLICY',
+                    'AO SE CADASTRAR, VOCÊ CONCORDA COM NOSSOS TERMOS DE SERVIÇO E POLÍTICAS DE PRIVACIDADE',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 9,
@@ -374,10 +358,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             shape: BoxShape.circle,
             color: Colors.white,
           ),
-          child: const Center(
+          child: Center(
             child: Text(
               'G',
-              style: TextStyle(
+              style: GoogleFonts.plusJakartaSans(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,

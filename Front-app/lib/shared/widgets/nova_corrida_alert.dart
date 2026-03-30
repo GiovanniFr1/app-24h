@@ -1,5 +1,6 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -75,250 +76,229 @@ class _NovaCorridaAlertState extends State<NovaCorridaAlert>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLow,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.2),
-            blurRadius: 50,
-            spreadRadius: 10,
-          ),
-        ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Barra indicadora
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-
-              const Text(
-                'NOVA VIAGEM',
-                style: TextStyle(
-                  color: AppTheme.primary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Valor Grande
-              Text(
-                widget.valor,
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Distância e Tempo Previstos
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceContainerHighest,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primary.withValues(alpha: 0.2),
+              blurRadius: 50,
+              spreadRadius: 10,
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    LucideIcons.clock,
-                    color: Colors.white70,
-                    size: 16,
+                  // Barra indicadora
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.outlineVariant.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                  const SizedBox(width: 4),
+
                   Text(
-                    widget.tempo,
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    'NOVA VIAGEM',
+                    style: GoogleFonts.inter(
+                      color: AppTheme.primary,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Icon(
-                    LucideIcons.mapPin,
-                    color: Colors.white70,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
+                  const SizedBox(height: 24),
+
+                  // Valor Grande
                   Text(
-                    widget.distancia,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.bold,
+                    widget.valor,
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.onSurface,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 32),
+                  const SizedBox(height: 8),
 
-              // Locais (Origem -> Destino)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            widget.origem,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      height: 20,
-                      margin: const EdgeInsets.only(left: 5),
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          left: BorderSide(color: Colors.white24, width: 2),
-                        ),
+                  // Distância e Tempo Previstos
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(LucideIcons.clock, color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8), size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.tempo,
+                        style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8), fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.primary,
-                            shape: BoxShape.rectangle,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            widget.destino,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: AppTheme.primary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        // Badge de Periculosidade Crítica
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.redAccent.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          child: const Text(
-                            'Crítica',
-                            style: TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Área dos Botões com o Timer
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Botão Recusar
-                  GestureDetector(
-                    onTap: widget.onDecline,
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24, width: 2),
-                        color: Colors.transparent,
+                      const SizedBox(width: 16),
+                      Icon(LucideIcons.mapPin, color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8), size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.distancia,
+                        style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8), fontWeight: FontWeight.bold),
                       ),
-                      child: const Icon(
-                        LucideIcons.x,
-                        color: Colors.white54,
-                        size: 30,
-                      ),
-                    ),
+                    ],
                   ),
+                  const SizedBox(height: 32),
 
-                  // Botão Aceitar com Timer
-                  GestureDetector(
-                    onTap: widget.onAccept,
-                    child: ScaleTransition(
-                      scale: _pulseAnimation,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            height: 100,
-                            child: CircularProgressIndicator(
-                              value:
-                                  _segundosRestantes /
-                                  15, // Porcentagem do círculo
-                              strokeWidth: 4,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppTheme.primary,
+                  // Locais (Origem -> Destino)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.onSurface,
+                                shape: BoxShape.circle,
                               ),
-                              backgroundColor: Colors.white12,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                widget.origem,
+                                style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: AppTheme.onSurface),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          height: 20,
+                          margin: const EdgeInsets.only(left: 5),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: BorderSide(color: AppTheme.outlineVariant.withValues(alpha: 0.5), width: 2),
                             ),
                           ),
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppTheme.primary,
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.primary,
+                                shape: BoxShape.rectangle,
+                              ),
                             ),
-                            child: const Center(
+                            const SizedBox(width: 16),
+                            Expanded(
                               child: Text(
-                                'ACEITAR',
-                                style: TextStyle(
-                                  color: Colors.black,
+                                widget.destino,
+                                style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: AppTheme.primary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Badge de Periculosidade Crítica
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.error.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppTheme.error.withValues(alpha: 0.5)),
+                              ),
+                              child: Text(
+                                'Crítica',
+                                style: GoogleFonts.inter(
+                                  color: AppTheme.error,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Área dos Botões com o Timer
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Botão Recusar
+                      GestureDetector(
+                        onTap: widget.onDecline,
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.5), width: 2),
+                            color: Colors.transparent,
+                          ),
+                          child: Icon(
+                            LucideIcons.x,
+                            color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8),
+                            size: 30,
+                          ),
+                        ),
+                      ),
+
+                      // Botão Aceitar com Timer
+                      GestureDetector(
+                        onTap: widget.onAccept,
+                        child: ScaleTransition(
+                          scale: _pulseAnimation,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                height: 100,
+                                child: CircularProgressIndicator(
+                                  value: _segundosRestantes / 15,
+                                  strokeWidth: 4,
+                                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                                  backgroundColor: AppTheme.surfaceContainerLowest,
+                                ),
+                              ),
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppTheme.primary,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'ACEITAR',
+                                    style: GoogleFonts.plusJakartaSans(color: AppTheme.onPrimaryContainer, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
