@@ -34,19 +34,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _loginWithEmail(String email, String password) {
-    if (email.trim() == 'beto.passageiro@acre24h.com' &&
-        password == 'senha123') {
+  Future<void> _loginWithEmail(String email, String password) async {
+    try {
+      final service = ref.read(firebaseAuthServiceProvider);
+      await service.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final profile = await service.getUserProfile();
+      if (!mounted) return;
+
       Navigator.pop(context);
-      _navegar(false);
-    } else if (email.trim() == 'zeca.motorista@acre24h.com' &&
-        password == 'senha123') {
-      Navigator.pop(context);
-      _navegar(true);
-    } else {
+      if (profile == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
+        );
+        return;
+      }
+
+      final isDriver =
+          (profile['is_driver'] as bool?) ??
+          (profile['role'] as String?)?.toLowerCase() == 'driver';
+      _navegar(isDriver);
+    } catch (error) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid mock credentials. Check README.'),
+        SnackBar(
+          content: Text('Falha no login: ${error.toString()}'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  Future<void> _registerWithEmail(String email, String password) async {
+    try {
+      final service = ref.read(firebaseAuthServiceProvider);
+      await service.registerWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha no cadastro: ${error.toString()}'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -123,6 +164,98 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   text: 'ENTRAR',
                   onPressed: () {
                     _loginWithEmail(
+                      emailController.text,
+                      passwordController.text,
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                CustomButton(
+                  text: 'CADASTRAR',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _showEmailRegisterSheet();
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEmailRegisterSheet() {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceContainer,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 24,
+              right: 24,
+              top: 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Cadastrar com E-mail',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: emailController,
+                  style: GoogleFonts.inter(color: AppTheme.onSurface),
+                  decoration: InputDecoration(
+                    labelText: 'E-mail',
+                    labelStyle: GoogleFonts.inter(
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passwordController,
+                  style: GoogleFonts.inter(color: AppTheme.onSurface),
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    labelStyle: GoogleFonts.inter(
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'CADASTRAR',
+                  onPressed: () {
+                    _registerWithEmail(
                       emailController.text,
                       passwordController.text,
                     );
@@ -266,6 +399,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     text: 'CONTINUAR COM EMAIL',
                     icon: Icons.email_outlined,
                     onPressed: _showEmailLoginSheet,
+                  ),
+                  const SizedBox(height: 12),
+                  CustomButton(
+                    text: 'CRIAR CONTA COM EMAIL',
+                    icon: Icons.person_add_outlined,
+                    onPressed: _showEmailRegisterSheet,
                   ),
 
                   const SizedBox(height: 16),

@@ -56,6 +56,26 @@ class FirebaseAuthService {
     return _auth.signInWithCredential(credential);
   }
 
+  Future<UserCredential> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    return _auth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+  }
+
+  Future<UserCredential> registerWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    return _auth.createUserWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+  }
+
   Future<Map<String, dynamic>?> getUserProfile() async {
     final user = currentUser;
     if (user == null) return null;
@@ -100,16 +120,18 @@ class FirebaseAuthService {
         if (name != null && name.isNotEmpty) 'name': name,
         if (email != null && email.isNotEmpty) 'email': email,
         if (phoneNumber != null && phoneNumber.isNotEmpty) 'phone': phoneNumber,
-      }
+      },
     };
 
-    final dio = Dio(BaseOptions(
-      baseUrl: 'https://us-central1-app-acre-24h.cloudfunctions.net',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-    ));
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://us-central1-app-acre-24h.cloudfunctions.net',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
+      ),
+    );
 
     try {
       final response = await dio.post('/setRole', data: body);
