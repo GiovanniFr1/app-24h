@@ -1,15 +1,15 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../core/theme.dart';
 
 class DriverEarningsScreen extends StatelessWidget {
   final double ganhosTotais;
-  final int totalCorridas;
+  final List<String> historicoModalidades;
 
   const DriverEarningsScreen({
     super.key,
     required this.ganhosTotais,
-    required this.totalCorridas,
+    required this.historicoModalidades,
   });
 
   @override
@@ -72,7 +72,7 @@ class DriverEarningsScreen extends StatelessWidget {
                     children: [
                       _buildMiniStat(
                         LucideIcons.car,
-                        '$totalCorridas',
+                        '${historicoModalidades.length}',
                         'Corridas',
                       ),
                       Container(height: 40, width: 1, color: Colors.white24),
@@ -180,7 +180,7 @@ class DriverEarningsScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Lista Renderizada caso tenha corridas
-            totalCorridas == 0
+            historicoModalidades.isEmpty
                 ? const Center(
                     child: Padding(
                       padding: EdgeInsets.all(32.0),
@@ -193,9 +193,9 @@ class DriverEarningsScreen extends StatelessWidget {
                 : ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: totalCorridas,
+                    itemCount: historicoModalidades.length,
                     itemBuilder: (context, index) {
-                      return _buildTripListTile();
+                      return _buildTripListTile(historicoModalidades[index]);
                     },
                   ),
           ],
@@ -232,7 +232,7 @@ class DriverEarningsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTripListTile() {
+  Widget _buildTripListTile(String modalidade) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -259,9 +259,9 @@ class DriverEarningsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Viagem (UberX/99Pop)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  modalidade,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 const Text(

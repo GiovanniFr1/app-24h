@@ -33,6 +33,110 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  void _loginWithEmail(String email, String password) {
+    if (email.trim() == 'beto.passageiro@acre24h.com' && password == 'senha123') {
+      Navigator.pop(context); 
+      _navegar(false); 
+    } else if (email.trim() == 'zeca.motorista@acre24h.com' && password == 'senha123') {
+      Navigator.pop(context); 
+      _navegar(true); 
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid mock credentials. Check README.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  void _showEmailLoginSheet() {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surfaceContainer,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Login com E-mail',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: emailController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'E-mail',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppTheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Senha',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppTheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                text: 'ENTRAR',
+                onPressed: () {
+                  _loginWithEmail(emailController.text, passwordController.text);
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _signInWithGoogle() async {
     setState(() => _isGoogleLoading = true);
     try {
@@ -134,6 +238,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         MaterialPageRoute(builder: (context) => const PhoneVerificationScreen()),
                       );
                     },
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  CustomButton(
+                    text: 'CONTINUE WITH EMAIL',
+                    icon: Icons.email_outlined,
+                    onPressed: _showEmailLoginSheet,
                   ),
                   
                   const SizedBox(height: 16),

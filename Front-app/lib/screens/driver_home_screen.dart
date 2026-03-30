@@ -26,7 +26,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   double _mapBottomPadding = 0;
 
   double _ganhosHoje = 0.0;
-  int _corridasHoje = 0;
+  final List<String> _historicoModalidades = [];
 
   int? _currentTripId;
   Trip? _currentTripData;
@@ -198,7 +198,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       _driverStatus = DriverStatus.online;
       _mapBottomPadding = 0;
       _ganhosHoje += valorGanho;
-      _corridasHoje++;
+      _historicoModalidades.insert(0, valorGanho > 20 ? 'Moto Comfort' : 'Moto Standard');
       _markers.clear();
       _polylines.clear();
       _currentTripId = null;
@@ -334,7 +334,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => DriverEarningsScreen(
                             ganhosTotais: _ganhosHoje,
-                            totalCorridas: _corridasHoje,
+                            historicoModalidades: _historicoModalidades,
                           ),
                         ),
                       ),
