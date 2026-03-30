@@ -22,10 +22,11 @@ class OtpVerificationScreen extends ConsumerStatefulWidget {
       _OtpVerificationScreenState();
 }
 
-class _OtpVerificationScreenState
-    extends ConsumerState<OtpVerificationScreen> {
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
+class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   bool _isLoading = false;
@@ -75,7 +76,8 @@ class _OtpVerificationScreenState
         return;
       }
 
-      final isDriver = (profile['is_driver'] as bool?) ??
+      final isDriver =
+          (profile['is_driver'] as bool?) ??
           (profile['role'] as String?)?.toLowerCase() == 'driver';
       Navigator.pushReplacement(
         context,
@@ -125,7 +127,9 @@ class _OtpVerificationScreenState
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 32.0, vertical: 24.0),
+                  horizontal: 32.0,
+                  vertical: 24.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -174,8 +178,9 @@ class _OtpVerificationScreenState
                               border: Border.all(
                                 color: _focusNodes[index].hasFocus
                                     ? AppTheme.primary
-                                    : AppTheme.outlineVariant
-                                        .withValues(alpha: 0.2),
+                                    : AppTheme.outlineVariant.withValues(
+                                        alpha: 0.2,
+                                      ),
                                 width: 2,
                               ),
                             ),
@@ -236,8 +241,9 @@ class _OtpVerificationScreenState
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color:
-                              AppTheme.primaryContainer.withValues(alpha: 0.2),
+                          color: AppTheme.primaryContainer.withValues(
+                            alpha: 0.2,
+                          ),
                           blurRadius: 24,
                           offset: const Offset(0, 12),
                         ),

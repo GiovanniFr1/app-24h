@@ -98,7 +98,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 24.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -133,7 +136,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
                     Text(
                       'Selecione seu perfil',
@@ -179,7 +182,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               color: AppTheme.surfaceContainerHigh,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppTheme.outlineVariant.withValues(alpha: 0.4),
+                                color: AppTheme.outlineVariant.withValues(
+                                  alpha: 0.4,
+                                ),
                                 width: 2,
                                 style: BorderStyle.solid,
                               ),
@@ -201,7 +206,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: const LinearGradient(
-                                  colors: [AppTheme.primary, AppTheme.primaryContainer],
+                                  colors: [
+                                    AppTheme.primary,
+                                    AppTheme.primaryContainer,
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -232,17 +240,25 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
                     // Input Fields
                     _buildInputLabel('FULL NAME'),
-                    _buildTextField(_nameController, 'Enter your name', TextInputType.name),
+                    _buildTextField(
+                      _nameController,
+                      'Enter your name',
+                      TextInputType.name,
+                    ),
                     const SizedBox(height: 24),
-                    
+
                     _buildInputLabel('EMAIL ADDRESS'),
-                    _buildTextField(_emailController, 'name@example.com', TextInputType.emailAddress),
+                    _buildTextField(
+                      _emailController,
+                      'name@example.com',
+                      TextInputType.emailAddress,
+                    ),
                     const SizedBox(height: 32),
 
                     // Payment Methods Bento
                     _buildInputLabel('PREFERRED PAYMENT'),
                     const SizedBox(height: 12),
-                    
+
                     _buildPaymentOption(
                       id: 'pix',
                       title: 'Pix',
@@ -281,7 +297,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 ),
               ),
             ),
-            
+
             // Fixed Bottom Action Area
             Container(
               padding: const EdgeInsets.all(24.0),
@@ -355,7 +371,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: selected ? AppTheme.surfaceContainerHigh : AppTheme.surfaceContainer,
+          color: selected
+              ? AppTheme.surfaceContainerHigh
+              : AppTheme.surfaceContainer,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected ? AppTheme.primary : Colors.transparent,
@@ -364,12 +382,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: selected ? AppTheme.primary : AppTheme.onSurfaceVariant),
+            Icon(
+              icon,
+              color: selected ? AppTheme.primary : AppTheme.onSurfaceVariant,
+            ),
             const SizedBox(height: 12),
             Text(
               title,
               style: GoogleFonts.inter(
-                color: selected ? AppTheme.onSurface : AppTheme.onSurfaceVariant,
+                color: selected
+                    ? AppTheme.onSurface
+                    : AppTheme.onSurfaceVariant,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -394,7 +417,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, TextInputType type) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint,
+    TextInputType type,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
@@ -413,7 +440,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             color: AppTheme.onSurfaceVariant.withValues(alpha: 0.3),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -427,7 +457,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     required Color color,
   }) {
     final isSelected = _selectedPayment == id;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -437,10 +467,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.surfaceContainerHigh : AppTheme.surfaceContainer,
+          color: isSelected
+              ? AppTheme.surfaceContainerHigh
+              : AppTheme.surfaceContainer,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color.withValues(alpha: 0.5) : Colors.transparent,
+            color: isSelected
+                ? color.withValues(alpha: 0.5)
+                : Colors.transparent,
             width: 2,
           ),
         ),
@@ -485,7 +519,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? color : AppTheme.outlineVariant.withValues(alpha: 0.3),
+                  color: isSelected
+                      ? color
+                      : AppTheme.outlineVariant.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),

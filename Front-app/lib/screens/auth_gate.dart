@@ -35,9 +35,15 @@ class AuthGate extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 72, color: Colors.redAccent),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 72,
+                      color: Colors.redAccent,
+                    ),
                     const SizedBox(height: 24),
-                    const Text('Não foi possível carregar o perfil do usuário.'),
+                    const Text(
+                      'Não foi possível carregar o perfil do usuário.',
+                    ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: null,
@@ -55,7 +61,8 @@ class AuthGate extends ConsumerWidget {
           return const ProfileSetupScreen();
         }
 
-        final isDriver = (profile['is_driver'] as bool?) ??
+        final isDriver =
+            (profile['is_driver'] as bool?) ??
             (profile['role'] as String?)?.toLowerCase() == 'driver';
 
         return isDriver ? const DriverHomeScreen() : const HomeScreen();

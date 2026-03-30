@@ -35,12 +35,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _loginWithEmail(String email, String password) {
-    if (email.trim() == 'beto.passageiro@acre24h.com' && password == 'senha123') {
-      Navigator.pop(context); 
-      _navegar(false); 
-    } else if (email.trim() == 'zeca.motorista@acre24h.com' && password == 'senha123') {
-      Navigator.pop(context); 
-      _navegar(true); 
+    if (email.trim() == 'beto.passageiro@acre24h.com' &&
+        password == 'senha123') {
+      Navigator.pop(context);
+      _navegar(false);
+    } else if (email.trim() == 'zeca.motorista@acre24h.com' &&
+        password == 'senha123') {
+      Navigator.pop(context);
+      _navegar(true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -90,8 +92,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: GoogleFonts.inter(color: AppTheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'E-mail',
-                    labelStyle: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
-                    prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.onSurfaceVariant),
+                    labelStyle: GoogleFonts.inter(
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),
@@ -101,8 +108,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: GoogleFonts.inter(color: AppTheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'Senha',
-                    labelStyle: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
-                    prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.onSurfaceVariant),
+                    labelStyle: GoogleFonts.inter(
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
                   ),
                   obscureText: true,
                 ),
@@ -110,7 +122,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 CustomButton(
                   text: 'ENTRAR',
                   onPressed: () {
-                    _loginWithEmail(emailController.text, passwordController.text);
+                    _loginWithEmail(
+                      emailController.text,
+                      passwordController.text,
+                    );
                   },
                 ),
                 const SizedBox(height: 24),
@@ -143,15 +158,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         return;
       }
 
-      final isDriver = (profile['is_driver'] as bool?) ??
+      final isDriver =
+          (profile['is_driver'] as bool?) ??
           (profile['role'] as String?)?.toLowerCase() == 'driver';
       _navegar(isDriver);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isGoogleLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google sign-in failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $e')));
     }
   }
 
@@ -166,7 +182,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Image.network(
               'https://images.unsplash.com/photo-1558981403-90f13a27289d?q=80&w=2070&auto=format&fit=crop',
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(color: AppTheme.background),
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(color: AppTheme.background),
             ),
           ),
           Positioned.fill(
@@ -192,14 +209,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 60),
-                  
+
                   // App Logo - Premium Layout
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primaryContainer.withValues(alpha: 0.2),
+                          color: AppTheme.primaryContainer.withValues(
+                            alpha: 0.2,
+                          ),
                           blurRadius: 40,
                           spreadRadius: 5,
                           offset: const Offset(0, 10),
@@ -234,21 +253,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const PhoneVerificationScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const PhoneVerificationScreen(),
+                        ),
                       );
                     },
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   CustomButton(
                     text: 'CONTINUAR COM EMAIL',
                     icon: Icons.email_outlined,
                     onPressed: _showEmailLoginSheet,
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   Row(
                     children: [
                       Expanded(
@@ -267,13 +288,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   Row(
                     children: [
                       Expanded(
-                        child: Divider(color: AppTheme.outlineVariant.withValues(alpha: 0.3)),
+                        child: Divider(
+                          color: AppTheme.outlineVariant.withValues(alpha: 0.3),
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -282,19 +305,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.onSurfaceVariant.withValues(alpha: 0.5),
+                            color: AppTheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            ),
                             letterSpacing: 1.5,
                           ),
                         ),
                       ),
                       Expanded(
-                        child: Divider(color: AppTheme.outlineVariant.withValues(alpha: 0.3)),
+                        child: Divider(
+                          color: AppTheme.outlineVariant.withValues(alpha: 0.3),
+                        ),
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   TextButton(
                     onPressed: _loginAsGuest,
                     child: Text(
@@ -307,9 +334,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 48),
-                  
+
                   // Footer
                   Text(
                     'AO SE CADASTRAR, VOCÊ CONCORDA COM NOSSOS TERMOS DE SERVIÇO E POLÍTICAS DE PRIVACIDADE',
@@ -321,7 +348,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
                 ],
               ),
@@ -342,7 +369,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainer,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: AppTheme.outlineVariant.withValues(alpha: 0.1),
+        ),
       ),
       child: InkWell(
         onTap: isLoading ? null : onPressed,
@@ -352,11 +381,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ? const SizedBox(
                   width: 22,
                   height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 )
               : iconPath == 'google'
-                  ? _buildGoogleIcon()
-                  : const Icon(Icons.apple, color: Colors.white, size: 28),
+              ? _buildGoogleIcon()
+              : const Icon(Icons.apple, color: Colors.white, size: 28),
         ),
       ),
     );
