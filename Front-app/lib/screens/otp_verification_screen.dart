@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme.dart';
 import '../core/providers/service_providers.dart';
+import 'driver_home_screen.dart';
 import 'profile_setup_screen.dart';
 import 'home_screen.dart';
 
@@ -56,19 +57,31 @@ class _OtpVerificationScreenState
 
     try {
       final service = ref.read(firebaseAuthServiceProvider);
-      final credential = await service.verifyOtp(
+      await service.verifyOtp(
         verificationId: widget.verificationId,
         smsCode: _otp,
       );
 
       if (!mounted) return;
 
-      final isNewUser = credential.additionalUserInfo?.isNewUser ?? true;
+      final profile = await service.getUserProfile();
+      if (!mounted) return;
+
+      if (profile == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
+        );
+        return;
+      }
+
+      final isDriver = (profile['is_driver'] as bool?) ??
+          (profile['role'] as String?)?.toLowerCase() == 'driver';
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) =>
-              isNewUser ? const ProfileSetupScreen() : const HomeScreen(),
+              isDriver ? const DriverHomeScreen() : const HomeScreen(),
         ),
       );
     } catch (e) {

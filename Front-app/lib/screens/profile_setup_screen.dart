@@ -1,25 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme.dart';
+import '../core/providers/service_providers.dart';
+import 'driver_home_screen.dart';
 import 'home_screen.dart';
 
-class ProfileSetupScreen extends StatefulWidget {
+class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
 
   @override
-  State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
+  ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
 }
 
-class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
+class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  String _selectedRole = 'passenger';
   String _selectedPayment = 'pix';
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  void _onSaveAndContinue() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
+  Future<void> _onSaveAndContinue() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _errorMessage = 'Please enter your name.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final service = ref.read(firebaseAuthServiceProvider);
+      final user = service.currentUser;
+
+      if (user == null) {
+        throw Exception('No authenticated user found.');
+      }
+
+      final emailInput = _emailController.text.trim();
+      await service.createUserProfile(
+        name: name,
+        role: _selectedRole,
+        email: emailInput.isNotEmpty ? emailInput : user.email,
+        phoneNumber: user.phoneNumber,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _selectedRole == 'driver'
+              ? const DriverHomeScreen()
+              : const HomeScreen(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Unable to save profile. Please try again.';
+      });
+    }
   }
 
   @override
@@ -88,7 +134,38 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Selecione seu perfil',
+                      style: GoogleFonts.inter(
+                        color: AppTheme.onSurfaceVariant,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildRoleOption(
+                            id: 'passenger',
+                            title: 'Passageiro',
+                            icon: Icons.person_outline,
+                            selected: _selectedRole == 'passenger',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildRoleOption(
+                            id: 'driver',
+                            title: 'Motorista',
+                            icon: Icons.drive_eta,
+                            selected: _selectedRole == 'driver',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
 
                     // Avatar Uploader
                     Center(
@@ -189,7 +266,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       icon: Icons.payments,
                       color: AppTheme.secondary,
                     ),
-                    
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorMessage!,
+                        style: GoogleFonts.inter(
+                          color: Colors.redAccent,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 100), // Padding for fixed bottom CTA
                   ],
                 ),
@@ -228,17 +314,63 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       borderRadius: BorderRadius.circular(9999),
                     ),
                   ),
-                  onPressed: _onSaveAndContinue,
-                  child: Text(
-                    'SAVE AND CONTINUE',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: AppTheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      letterSpacing: 2,
-                    ),
-                  ),
+                  onPressed: _isLoading ? null : _onSaveAndContinue,
+                  child: _isLoading
+                      ? const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: AppTheme.onPrimaryContainer,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          'SAVE AND CONTINUE',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: AppTheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: 2,
+                          ),
+                        ),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleOption({
+    required String id,
+    required String title,
+    required IconData icon,
+    required bool selected,
+  }) {
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = id),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.surfaceContainerHigh : AppTheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? AppTheme.primary : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: selected ? AppTheme.primary : AppTheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                color: selected ? AppTheme.onSurface : AppTheme.onSurfaceVariant,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],

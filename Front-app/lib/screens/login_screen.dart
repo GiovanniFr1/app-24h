@@ -7,6 +7,7 @@ import '../shared/widgets/custom_button.dart';
 import 'home_screen.dart';
 import 'driver_home_screen.dart';
 import 'phone_verification_screen.dart';
+import 'profile_setup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -130,7 +131,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         setState(() => _isGoogleLoading = false);
         return;
       }
-      _navegar(false);
+
+      final profile = await service.getUserProfile();
+      if (!mounted) return;
+
+      if (profile == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
+        );
+        return;
+      }
+
+      final isDriver = (profile['is_driver'] as bool?) ??
+          (profile['role'] as String?)?.toLowerCase() == 'driver';
+      _navegar(isDriver);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isGoogleLoading = false);
