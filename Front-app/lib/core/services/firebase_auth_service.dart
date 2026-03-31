@@ -1,28 +1,36 @@
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Firebase Auth Service focado unicamente na obtenção de credenciais de login
+/// (Secure Identity Provider). 
+/// Qualquer lógica de negócio (como 'getUserProfile' e 'isDriver') foi 
+/// transferida para o Backend Django para respeitar a arquitetura "Single Source of Truth".
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
+  /// Obtenção do usuário logado localmente na SDK do Firebase.
   User? get currentUser => _auth.currentUser;
 
+  /// Stream reativa para escutar mudanças no status primário do celular.
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  CollectionReference<Map<String, dynamic>> get _usersCollection =>
-      _firestore.collection('users');
+  /// Gera e atualiza obrigatoriamente (forceRefresh) um ID Token JWT 
+  /// puro e verificado pelas chaves do Google.
+  /// Este é o Token que seu App usará no Header para autenticar e consumir 
+  /// a Web API Rest Python/Django.
+  Future<String?> getIdToken({bool forceRefresh = false}) async {
+    final user = currentUser;
+    if (user == null) return null;
+    return await user.getIdToken(forceRefresh);
+  }
 
+  /// Inicia a validação física do Número de Celular disparando OTP.
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
     required void Function(String verificationId) onCodeSent,
     required void Function(FirebaseAuthException error) onVerificationFailed,
-    required void Function(PhoneAuthCredential credential)
-    onVerificationCompleted,
+    required void Function(PhoneAuthCredential credential) onVerificationCompleted,
   }) async {
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
@@ -34,6 +42,7 @@ class FirebaseAuthService {
     );
   }
 
+  /// Verifica o Código SMS recebido.
   Future<UserCredential> verifyOtp({
     required String verificationId,
     required String smsCode,
@@ -45,6 +54,7 @@ class FirebaseAuthService {
     return _auth.signInWithCredential(credential);
   }
 
+  /// Tela de Consentimento Social com a Google.
   Future<UserCredential?> signInWithGoogle() async {
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return null;
@@ -56,6 +66,7 @@ class FirebaseAuthService {
     return _auth.signInWithCredential(credential);
   }
 
+  /// Logon tradicional com Credencial Fixa.
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
@@ -66,6 +77,8 @@ class FirebaseAuthService {
     );
   }
 
+  /// Cadastro tradicional limpo. Os dados adicionais (Nome, CPF, Veículo)
+  /// deverão ser enviados na rota POST /api/v1/users/register do Backend Django.
   Future<UserCredential> registerWithEmailAndPassword({
     required String email,
     required String password,
@@ -76,106 +89,7 @@ class FirebaseAuthService {
     );
   }
 
-  Future<Map<String, dynamic>?> getUserProfile() async {
-    final user = currentUser;
-    if (user == null) return null;
-
-    final snapshot = await _usersCollection.doc(user.uid).get();
-    return snapshot.data();
-  }
-
-  Future<bool> hasUserProfile() async {
-    final user = currentUser;
-    if (user == null) return false;
-    final snapshot = await _usersCollection.doc(user.uid).get();
-    return snapshot.exists;
-  }
-
-  Future<bool?> isDriver() async {
-    final profile = await getUserProfile();
-    if (profile == null) return null;
-    final isDriver = profile['is_driver'] as bool?;
-    final role = profile['role'] as String?;
-    return isDriver ?? role?.toLowerCase() == 'driver';
-  }
-
-  Future<void> _callSetRole({
-    required String role,
-    String? name,
-    String? email,
-    String? phoneNumber,
-  }) async {
-    final user = currentUser;
-    if (user == null) {
-      throw FirebaseAuthException(
-        code: 'no-current-user',
-        message: 'No authenticated Firebase user available.',
-      );
-    }
-
-    final idToken = await user.getIdToken();
-    final body = {
-      'data': {
-        'role': role,
-        if (name != null && name.isNotEmpty) 'name': name,
-        if (email != null && email.isNotEmpty) 'email': email,
-        if (phoneNumber != null && phoneNumber.isNotEmpty) 'phone': phoneNumber,
-      },
-    };
-
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: 'https://us-central1-app-acre-24h.cloudfunctions.net',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $idToken',
-        },
-      ),
-    );
-
-    try {
-      final response = await dio.post('/setRole', data: body);
-      if (response.statusCode != 200) {
-        final responseBody = response.data is String
-            ? response.data
-            : jsonEncode(response.data);
-        throw FirebaseAuthException(
-          code: 'backend-failed',
-          message: 'setRole failed (${response.statusCode}): $responseBody',
-        );
-      }
-    } on DioException catch (error) {
-      final responseBody = error.response?.data ?? error.message;
-      throw FirebaseAuthException(
-        code: 'backend-failed',
-        message: 'setRole failed: $responseBody',
-      );
-    }
-  }
-
-  Future<void> createUserProfile({
-    required String name,
-    required String role,
-    String? email,
-    String? phoneNumber,
-  }) async {
-    final user = currentUser;
-    if (user == null) {
-      throw FirebaseAuthException(
-        code: 'no-current-user',
-        message: 'No authenticated Firebase user available.',
-      );
-    }
-
-    final finalEmail = email?.isNotEmpty == true ? email : user.email;
-    await _callSetRole(
-      role: role,
-      name: name,
-      email: finalEmail,
-      phoneNumber: phoneNumber ?? user.phoneNumber,
-    );
-  }
-
+  /// Limpa cache e desloga localmente a sessão do aparelho.
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();

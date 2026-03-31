@@ -19,7 +19,7 @@ class AuthGate extends ConsumerWidget {
     }
 
     return FutureBuilder<Map<String, dynamic>?>(
-      future: service.getUserProfile(),
+      future: ref.read(apiAuthRepositoryProvider).fetchDashboard().then<Map<String, dynamic>?>((val) => val).catchError((_) => null),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Scaffold(

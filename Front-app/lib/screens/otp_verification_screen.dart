@@ -65,7 +65,12 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
       if (!mounted) return;
 
-      final profile = await service.getUserProfile();
+      Map<String, dynamic>? profile;
+      try {
+        profile = await ref.read(apiAuthRepositoryProvider).fetchDashboard();
+      } catch (_) {
+        profile = null;
+      }
       if (!mounted) return;
 
       if (profile == null) {

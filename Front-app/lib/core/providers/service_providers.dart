@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/token_storage.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_auth_service.dart';
+import '../services/api_auth_repository.dart';
 import '../services/trip_service.dart';
 import '../services/location_service.dart';
 
@@ -31,4 +32,8 @@ final locationServiceProvider = Provider<LocationService>((ref) {
 
 final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) {
   return FirebaseAuthService();
+});
+
+final apiAuthRepositoryProvider = Provider<ApiAuthRepository>((ref) {
+  return ApiAuthRepository(firebaseAuth: ref.read(firebaseAuthServiceProvider));
 });

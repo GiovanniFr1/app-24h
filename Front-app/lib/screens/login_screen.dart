@@ -42,7 +42,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         password: password,
       );
 
-      final profile = await service.getUserProfile();
+      Map<String, dynamic>? profile;
+      try {
+        profile = await ref.read(apiAuthRepositoryProvider).fetchDashboard();
+      } catch (_) {
+        profile = null;
+      }
       if (!mounted) return;
 
       Navigator.pop(context);
@@ -280,7 +285,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         return;
       }
 
-      final profile = await service.getUserProfile();
+      Map<String, dynamic>? profile;
+      try {
+        profile = await ref.read(apiAuthRepositoryProvider).fetchDashboard();
+      } catch (_) {
+        profile = null;
+      }
       if (!mounted) return;
 
       if (profile == null) {

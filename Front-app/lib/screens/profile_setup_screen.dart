@@ -5,6 +5,7 @@ import '../core/theme.dart';
 import '../core/providers/service_providers.dart';
 import 'driver_home_screen.dart';
 import 'home_screen.dart';
+import '../models/kyc_models.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -16,10 +17,19 @@ class ProfileSetupScreen extends ConsumerStatefulWidget {
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _carYearController = TextEditingController();
+  final TextEditingController _carDoorsController = TextEditingController();
+  
   String _selectedRole = 'passenger';
   String _selectedPayment = 'pix';
   bool _isLoading = false;
   String? _errorMessage;
+
+  bool _hasEar = false;
+  bool _isDefinitiveCnh = false;
+  bool _hasAc = false;
+  bool _backgroundCheckConsent = false;
 
   Future<void> _onSaveAndContinue() async {
     final name = _nameController.text.trim();
@@ -41,13 +51,41 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         throw Exception('No authenticated user found.');
       }
 
-      final emailInput = _emailController.text.trim();
-      await service.createUserProfile(
-        name: name,
-        role: _selectedRole,
-        email: emailInput.isNotEmpty ? emailInput : user.email,
-        phoneNumber: user.phoneNumber,
-      );
+      if (_selectedRole == 'passenger') {
+        final payload = PassengerRegistrationPayload(
+          cpf: _cpfController.text.trim(),
+          fullName: name,
+          email: user.email ?? '',
+          phoneVerified: user.phoneNumber ?? '',
+          isOver18: true, // Automático por ora até ter tela de birthdate
+          defaultPaymentMethod: _selectedPayment,
+        );
+        final err = payload.validateClientSide();
+        if (err != null) throw Exception(err);
+
+        await ref.read(apiAuthRepositoryProvider).registerPassenger(payload);
+      } else {
+        final payload = DriverKycPayload(
+          cpf: _cpfController.text.trim(),
+          fullyName: name,
+          phoneVerified: user.phoneNumber ?? '',
+          cnhFilePath: 'mock_cnh.jpg', 
+          selfieFilePath: 'mock_selfie.jpg', 
+          hasEar: _hasEar,
+          isDefinitiveCnh: _isDefinitiveCnh,
+          backgroundCheckConsent: _backgroundCheckConsent,
+          crlvFilePath: 'mock_crlv.pdf', 
+          carYear: int.tryParse(_carYearController.text.trim()) ?? 0,
+          carDoors: int.tryParse(_carDoorsController.text.trim()) ?? 0,
+          hasAc: _hasAc,
+          seatCapacity: 5,
+          isNotPickupOrVan: true,
+        );
+        final err = payload.validateClientSide();
+        if (err != null) throw Exception(err);
+
+        await ref.read(apiAuthRepositoryProvider).registerDriverKyc(payload);
+      }
 
       if (!mounted) return;
 
@@ -63,7 +101,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Unable to save profile. Please try again.';
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
       });
     }
   }
@@ -72,6 +110,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _cpfController.dispose();
+    _carYearController.dispose();
+    _carDoorsController.dispose();
     super.dispose();
   }
 
@@ -253,7 +294,41 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       'name@example.com',
                       TextInputType.emailAddress,
                     ),
+                    const SizedBox(height: 24),
+
+                    _buildInputLabel('CPF'),
+                    _buildTextField(
+                      _cpfController,
+                      '000.000.000-00',
+                      TextInputType.number,
+                    ),
                     const SizedBox(height: 32),
+
+                    if (_selectedRole == 'driver') ...[
+                      const Divider(height: 48),
+                      Text(
+                        'DADOS DO VEÍCULO E CNH',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildInputLabel('ANO DE FABRICAÇÃO'),
+                      _buildTextField(_carYearController, 'Ex: 2016', TextInputType.number),
+                      const SizedBox(height: 24),
+                      _buildInputLabel('QUANTIDADE DE PORTAS'),
+                      _buildTextField(_carDoorsController, 'Ex: 4', TextInputType.number),
+                      const SizedBox(height: 24),
+
+                      _buildSwitch('Veículo possui Ar-Condicionado?', _hasAc, (v) => setState(() => _hasAc = v)),
+                      _buildSwitch('CNH é Definitiva (Não PPD)?', _isDefinitiveCnh, (v) => setState(() => _isDefinitiveCnh = v)),
+                      _buildSwitch('CNH possui EAR (Atividade Remun.)?', _hasEar, (v) => setState(() => _hasEar = v)),
+                      _buildSwitch('Autorizo a checagem de antecedentes', _backgroundCheckConsent, (v) => setState(() => _backgroundCheckConsent = v)),
+                      const SizedBox(height: 32),
+                    ],
 
                     // Payment Methods Bento
                     _buildInputLabel('PREFERRED PAYMENT'),
@@ -541,6 +616,23 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSwitch(String label, bool value, ValueChanged<bool> onChanged) {
+    return SwitchListTile(
+      title: Text(
+        label,
+        style: GoogleFonts.inter(
+          color: AppTheme.onSurface,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+        ),
+      ),
+      activeColor: AppTheme.primary,
+      contentPadding: EdgeInsets.zero,
+      value: value,
+      onChanged: onChanged,
     );
   }
 }
