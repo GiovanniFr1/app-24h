@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme.dart';
 import '../core/providers/service_providers.dart';
+import 'driver_home_screen.dart';
 import 'profile_setup_screen.dart';
 import 'home_screen.dart';
 
@@ -21,10 +22,11 @@ class OtpVerificationScreen extends ConsumerStatefulWidget {
       _OtpVerificationScreenState();
 }
 
-class _OtpVerificationScreenState
-    extends ConsumerState<OtpVerificationScreen> {
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
+class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   bool _isLoading = false;
@@ -56,19 +58,37 @@ class _OtpVerificationScreenState
 
     try {
       final service = ref.read(firebaseAuthServiceProvider);
-      final credential = await service.verifyOtp(
+      await service.verifyOtp(
         verificationId: widget.verificationId,
         smsCode: _otp,
       );
 
       if (!mounted) return;
 
-      final isNewUser = credential.additionalUserInfo?.isNewUser ?? true;
+      Map<String, dynamic>? profile;
+      try {
+        profile = await ref.read(firestoreUserRepositoryProvider).getUserProfile();
+      } catch (_) {
+        profile = null;
+      }
+      if (!mounted) return;
+
+      if (profile == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
+        );
+        return;
+      }
+
+      final isDriver =
+          (profile['is_driver'] as bool?) ??
+          (profile['role'] as String?)?.toLowerCase() == 'driver';
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) =>
-              isNewUser ? const ProfileSetupScreen() : const HomeScreen(),
+              isDriver ? const DriverHomeScreen() : const HomeScreen(),
         ),
       );
     } catch (e) {
@@ -112,7 +132,9 @@ class _OtpVerificationScreenState
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 32.0, vertical: 24.0),
+                  horizontal: 32.0,
+                  vertical: 24.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -161,8 +183,9 @@ class _OtpVerificationScreenState
                               border: Border.all(
                                 color: _focusNodes[index].hasFocus
                                     ? AppTheme.primary
-                                    : AppTheme.outlineVariant
-                                        .withValues(alpha: 0.2),
+                                    : AppTheme.outlineVariant.withValues(
+                                        alpha: 0.2,
+                                      ),
                                 width: 2,
                               ),
                             ),
@@ -223,8 +246,9 @@ class _OtpVerificationScreenState
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color:
-                              AppTheme.primaryContainer.withValues(alpha: 0.2),
+                          color: AppTheme.primaryContainer.withValues(
+                            alpha: 0.2,
+                          ),
                           blurRadius: 24,
                           offset: const Offset(0, 12),
                         ),

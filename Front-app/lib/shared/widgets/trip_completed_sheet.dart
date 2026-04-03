@@ -23,17 +23,22 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
           // Total Fare Section
           Column(
             children: [
               Text(
-                'TOTAL FARE',
+                'TARIFA TOTAL',
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -85,7 +90,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
                       const Icon(Icons.timer, color: AppTheme.secondary, size: 28),
                       const SizedBox(height: 8),
                       Text(
-                        'DURATION',
+                        'DURAÇÃO',
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -118,7 +123,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
                       const Icon(Icons.location_on, color: AppTheme.tertiary, size: 28),
                       const SizedBox(height: 8),
                       Text(
-                        'DISTANCE',
+                        'DISTÂNCIA',
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -168,7 +173,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Pix Payment',
+                          'Pagamento via Pix',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -176,7 +181,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
                           ),
                         ),
                         Text(
-                          'Instant confirmation',
+                          'Confirmação instantânea',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppTheme.onSurfaceVariant,
@@ -187,7 +192,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
                   ],
                 ),
                 Text(
-                  'CHANGE',
+                  'ALTERAR',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -210,7 +215,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
             child: Column(
               children: [
                 Text(
-                  'How was your ride?',
+                  'Como foi sua viagem?',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -219,7 +224,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Rate your driver ${widget.driverInfo['name'] ?? 'Alex Walker'}',
+                  'Avalie o motorista ${widget.driverInfo['name'] ?? 'Alex Walker'}',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: AppTheme.onSurfaceVariant,
@@ -249,7 +254,7 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
                 if (_selectedRating == 5) ...[
                   const SizedBox(height: 24),
                   Text(
-                    'ADD A TIP',
+                    'ADICIONAR GORJETA',
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -276,12 +281,12 @@ class _TripCompletedSheetState extends State<TripCompletedSheet> {
 
           // CTA Action
           CustomButton(
-            text: 'Done',
+            text: 'Concluído',
             onPressed: widget.onFinish,
           ),
         ],
       ),
-    );
+    )));
   }
 
   Widget _buildTipButton(double amount) {

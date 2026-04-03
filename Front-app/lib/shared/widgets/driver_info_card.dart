@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import 'custom_button.dart';
@@ -28,14 +29,16 @@ class DriverInfoCard extends StatelessWidget {
               children: [
                 Text(
                   'Motorista a caminho',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Chega em ${driverInfo['etaMins']} min',
-                  style: const TextStyle(
+                  style: GoogleFonts.inter(
                     color: AppTheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -45,7 +48,7 @@ class DriverInfoCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white10,
+                color: AppTheme.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -54,8 +57,8 @@ class DriverInfoCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     '${driverInfo['rating']}',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: GoogleFonts.inter(
+                      color: AppTheme.onSurface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -72,7 +75,7 @@ class DriverInfoCard extends StatelessWidget {
             CircleAvatar(
               radius: 30,
               backgroundImage: NetworkImage(driverInfo['photoUrl']),
-              backgroundColor: Colors.white10,
+              backgroundColor: AppTheme.surfaceContainerLowest,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -81,17 +84,17 @@ class DriverInfoCard extends StatelessWidget {
                 children: [
                   Text(
                     driverInfo['name'],
-                    style: const TextStyle(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppTheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${driverInfo['trips']} corridas',
-                    style: const TextStyle(
-                      color: Colors.white54,
+                    style: GoogleFonts.inter(
+                      color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -100,11 +103,11 @@ class DriverInfoCard extends StatelessWidget {
             ),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: AppTheme.surfaceContainerLowest,
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(LucideIcons.messageCircle, color: Colors.white),
+                icon: const Icon(LucideIcons.messageCircle, color: AppTheme.onSurface),
                 onPressed: () {},
               ),
             ),
@@ -127,7 +130,7 @@ class DriverInfoCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: AppTheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -141,8 +144,8 @@ class DriverInfoCard extends StatelessWidget {
                     children: [
                       Text(
                         driverInfo['carModel'],
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: GoogleFonts.inter(
+                          color: AppTheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -150,8 +153,8 @@ class DriverInfoCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         driverInfo['plate'],
-                        style: const TextStyle(
-                          color: Colors.white54,
+                        style: GoogleFonts.inter(
+                          color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8),
                           fontSize: 14,
                         ),
                       ),
@@ -163,7 +166,7 @@ class DriverInfoCard extends StatelessWidget {
                 'assets/carro_placeholder.png', // Fallback, não importa tanto agora se a img existir
                 height: 40,
                 errorBuilder: (context, error, stackTrace) =>
-                    const Icon(LucideIcons.car, color: Colors.white54, size: 40),
+                    Icon(LucideIcons.car, color: AppTheme.onSurfaceVariant.withValues(alpha: 0.8), size: 40),
               ),
             ],
           ),

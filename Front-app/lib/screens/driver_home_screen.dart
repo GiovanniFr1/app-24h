@@ -7,7 +7,6 @@ import '../core/theme.dart';
 import '../core/providers/service_providers.dart';
 import '../core/models/trip_model.dart';
 import '../shared/widgets/nova_corrida_alert.dart';
-import '../shared/widgets/custom_button.dart';
 import 'driver_earnings_screen.dart';
 import 'login_screen.dart';
 
@@ -26,13 +25,22 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   double _mapBottomPadding = 0;
 
   double _ganhosHoje = 0.0;
-  int _corridasHoje = 0;
+  final List<String> _historicoModalidades = [];
 
   int? _currentTripId;
   Trip? _currentTripData;
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+
+  static const String _grayMapStyle = '''[
+    {
+      "stylers": [
+        {"saturation": -100},
+        {"lightness": 20}
+      ]
+    }
+  ]''';
 
   static const LatLng _origem = LatLng(-9.97499, -67.8243);
   static const LatLng _destino = LatLng(-9.9488, -67.7915);
@@ -57,6 +65,65 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     }
 
     _mostrarNovaCorrida(trip);
+  }
+
+  Set<Circle> get _activeHeatmapCircles {
+    if (_driverStatus != DriverStatus.online || _currentTripId != null) {
+      return {};
+    }
+
+    return {
+      Circle(
+        circleId: const CircleId('zonaQuente1'),
+        center: LatLng(-9.9695, -67.8220),
+        radius: 450,
+        fillColor: const Color(0x44FFD54F),
+        strokeColor: const Color(0x88FFC107),
+        strokeWidth: 2,
+      ),
+      Circle(
+        circleId: const CircleId('zonaQuente2'),
+        center: LatLng(-9.9810, -67.8320),
+        radius: 520,
+        fillColor: const Color(0x44FF8F00),
+        strokeColor: const Color(0x88FFB300),
+        strokeWidth: 2,
+      ),
+      Circle(
+        circleId: const CircleId('zonaQuente3'),
+        center: LatLng(-9.9660, -67.8380),
+        radius: 380,
+        fillColor: const Color(0x4491D500),
+        strokeColor: const Color(0x8894D500),
+        strokeWidth: 2,
+      ),
+    };
+  }
+
+  Widget _buildDriverActionButton({
+    required String text,
+    required IconData icon,
+    required VoidCallback onPressed,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 64,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? AppTheme.primary,
+          foregroundColor: foregroundColor ?? AppTheme.onPrimaryContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          elevation: 4,
+        ),
+        icon: Icon(icon, size: 24),
+        label: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+        onPressed: onPressed,
+      ),
+    );
   }
 
   void _mostrarNovaCorrida(Trip? trip) {
@@ -121,54 +188,63 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       backgroundColor: Colors.transparent,
       isDismissible: false,
       enableDrag: false,
-      builder: (context) => NovaCorridaAlert(
-        distancia: trip != null ? '${trip.price.toStringAsFixed(1)} km' : '4.2 km',
-        tempo: '12 min',
-        valor: trip != null
-            ? 'R\$ ${trip.price.toStringAsFixed(2).replaceAll('.', ',')}'
-            : 'R\$ 18,50',
-        origem: 'Embarque: ${trip?.origin ?? 'Centro'} (a 800m)',
-        destino: 'Destino: ${trip?.destination ?? 'Taquari'}',
-        onAccept: () async {
-          Navigator.pop(context);
-          final messenger = ScaffoldMessenger.of(context);
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.4,
+        child: NovaCorridaAlert(
+          distancia: trip != null
+              ? '${trip.price.toStringAsFixed(1)} km'
+              : '4.2 km',
+          tempo: '12 min',
+          valor: trip != null
+              ? 'R\$ ${trip.price.toStringAsFixed(2).replaceAll('.', ',')}'
+              : 'R\$ 18,50',
+          origem: 'Embarque: ${trip?.origin ?? 'Centro'} (a 800m)',
+          destino: 'Destino: ${trip?.destination ?? 'Taquari'}',
+          onAccept: () async {
+            Navigator.pop(context);
+            final messenger = ScaffoldMessenger.of(context);
 
-          if (trip != null) {
-            try {
-              await ref.read(tripServiceProvider).acceptTrip(trip.id);
-              _currentTripId = trip.id;
-              _currentTripData = trip;
-            } catch (_) {
-              _currentTripId = null;
+            if (trip != null) {
+              try {
+                await ref.read(tripServiceProvider).acceptTrip(trip.id);
+                _currentTripId = trip.id;
+                _currentTripData = trip;
+              } catch (_) {
+                _currentTripId = null;
+              }
             }
-          }
 
-          setState(() {
-            _driverStatus = DriverStatus.aCaminho;
-            _mapBottomPadding = 260.0;
-          });
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Corrida Aceita! Siga até o passageiro.')),
-          );
-        },
-        onDecline: () {
-          Navigator.pop(context);
-          setState(() {
-            _markers.clear();
-            _polylines.clear();
-            _mapBottomPadding = 0;
-          });
-          if (_mapController != null) {
-            _mapController!.animateCamera(
-              CameraUpdate.newCameraPosition(_initialPosition),
+            setState(() {
+              _driverStatus = DriverStatus.aCaminho;
+              _mapBottomPadding = 260.0;
+            });
+            messenger.showSnackBar(
+              const SnackBar(
+                content: Text('Corrida Aceita! Siga até o passageiro.'),
+              ),
             );
-          }
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Viagem recusada. Procurando outra...')),
-            );
-          }
-        },
+          },
+          onDecline: () {
+            Navigator.pop(context);
+            setState(() {
+              _markers.clear();
+              _polylines.clear();
+              _mapBottomPadding = 0;
+            });
+            if (_mapController != null) {
+              _mapController!.animateCamera(
+                CameraUpdate.newCameraPosition(_initialPosition),
+              );
+            }
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Viagem recusada. Procurando outra...'),
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -198,7 +274,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       _driverStatus = DriverStatus.online;
       _mapBottomPadding = 0;
       _ganhosHoje += valorGanho;
-      _corridasHoje++;
+      _historicoModalidades.insert(
+        0,
+        valorGanho > 20 ? 'Moto Comfort' : 'Moto Standard',
+      );
       _markers.clear();
       _polylines.clear();
       _currentTripId = null;
@@ -226,21 +305,24 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.greenAccent.withValues(alpha: 0.2),
+                  color: AppTheme.tertiary.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.attach_money, color: Colors.greenAccent),
+                child: const Icon(Icons.attach_money, color: AppTheme.tertiary),
               ),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Corrida Finalizada', style: TextStyle(color: Colors.white54)),
+                  Text(
+                    'Corrida Finalizada',
+                    style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+                  ),
                   Text(
                     '+ R\$ ${valorGanho.toStringAsFixed(2).replaceAll('.', ',')} adicionados!',
                     style: GoogleFonts.inter(
-                      color: Colors.greenAccent,
+                      color: AppTheme.tertiary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -278,17 +360,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                AppTheme.background,
-                Colors.transparent,
-              ],
+              colors: [AppTheme.background, Colors.transparent],
             ),
           ),
         ),
         leading: Builder(
           builder: (context) => IconButton(
             icon: CircleAvatar(
-              backgroundColor: AppTheme.surfaceContainerHigh.withValues(alpha: 0.8),
+              backgroundColor: AppTheme.surfaceContainerHigh.withValues(
+                alpha: 0.8,
+              ),
               child: const Icon(Icons.menu, color: AppTheme.primaryContainer),
             ),
             onPressed: () => Scaffold.of(context).openDrawer(),
@@ -313,11 +394,15 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             padding: EdgeInsets.only(bottom: _mapBottomPadding),
             initialCameraPosition: _initialPosition,
             mapType: MapType.normal,
+            style: _driverStatus == DriverStatus.offline ? _grayMapStyle : null,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             markers: _markers,
             polylines: _polylines,
-            onMapCreated: (controller) => _mapController = controller,
+            circles: _activeHeatmapCircles,
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
           ),
 
           SafeArea(
@@ -334,7 +419,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => DriverEarningsScreen(
                             ganhosTotais: _ganhosHoje,
-                            totalCorridas: _corridasHoje,
+                            historicoModalidades: _historicoModalidades,
                           ),
                         ),
                       ),
@@ -348,10 +433,14 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.surfaceContainerHigh.withValues(alpha: 0.6),
+                              color: AppTheme.surfaceContainerHigh.withValues(
+                                alpha: 0.6,
+                              ),
                               borderRadius: BorderRadius.circular(30),
                               border: Border.all(
-                                color: AppTheme.primaryContainer.withValues(alpha: 0.2),
+                                color: AppTheme.primaryContainer.withValues(
+                                  alpha: 0.2,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -394,7 +483,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceContainerLow.withValues(alpha: 0.8),
+                            color: AppTheme.surfaceContainerLow.withValues(
+                              alpha: 0.8,
+                            ),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
@@ -422,9 +513,12 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                               Switch(
                                 value: _driverStatus != DriverStatus.offline,
                                 activeThumbColor: AppTheme.tertiary,
-                                activeTrackColor: AppTheme.tertiary.withValues(alpha: 0.3),
+                                activeTrackColor: AppTheme.tertiary.withValues(
+                                  alpha: 0.3,
+                                ),
                                 inactiveThumbColor: AppTheme.onSurfaceVariant,
-                                inactiveTrackColor: AppTheme.surfaceContainerHighest,
+                                inactiveTrackColor:
+                                    AppTheme.surfaceContainerHighest,
                                 onChanged: (value) {
                                   if (_driverStatus == DriverStatus.aCaminho ||
                                       _driverStatus == DriverStatus.embarque ||
@@ -432,7 +526,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                            'Finalize a viagem antes de ficar offline.'),
+                                          'Finalize a viagem antes de ficar offline.',
+                                        ),
                                       ),
                                     );
                                     return;
@@ -455,10 +550,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             ),
           ),
 
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _buildBottomCard(),
-          ),
+          Align(alignment: Alignment.bottomCenter, child: _buildBottomCard()),
         ],
       ),
     );
@@ -474,7 +566,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           decoration: BoxDecoration(
             color: AppTheme.surfaceContainerLow.withValues(alpha: 0.9),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
-            border: Border(top: BorderSide(color: AppTheme.outlineVariant.withValues(alpha: 0.1))),
+            border: Border(
+              top: BorderSide(
+                color: AppTheme.outlineVariant.withValues(alpha: 0.1),
+              ),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.4),
@@ -487,7 +583,12 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             child: Padding(
-              padding: const EdgeInsets.only(top: 16, bottom: 32, left: 24, right: 24),
+              padding: const EdgeInsets.only(
+                top: 16,
+                bottom: 32,
+                left: 24,
+                right: 24,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -524,12 +625,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         height: 80,
         width: 80,
         decoration: BoxDecoration(
-          color: _driverStatus == DriverStatus.online ? AppTheme.primary.withValues(alpha: 0.1) : AppTheme.surfaceContainerHighest,
+          color: _driverStatus == DriverStatus.online
+              ? AppTheme.primary.withValues(alpha: 0.1)
+              : AppTheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
         child: Icon(
           Icons.radar,
-          color: _driverStatus == DriverStatus.online ? AppTheme.primary : AppTheme.onSurfaceVariant,
+          color: _driverStatus == DriverStatus.online
+              ? AppTheme.primary
+              : AppTheme.onSurfaceVariant,
           size: 40,
         ),
       ),
@@ -538,7 +643,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         _driverStatus == DriverStatus.online
             ? 'Aguardando solicitações...'
             : 'Fique online para receber viagens',
-        style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.onSurface),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppTheme.onSurface,
+        ),
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: 8),
@@ -549,9 +658,27 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
         textAlign: TextAlign.center,
       ),
-      if (_driverStatus == DriverStatus.online) ...[
+      if (_driverStatus == DriverStatus.offline) ...[
         const SizedBox(height: 24),
-        CustomButton(
+        _buildDriverActionButton(
+          text: 'GO',
+          icon: Icons.power_settings_new,
+          onPressed: () {
+            setState(() => _driverStatus = DriverStatus.online);
+          },
+        ),
+      ] else ...[
+        const SizedBox(height: 24),
+        Text(
+          'Zonas quentes são destacadas no mapa enquanto você estiver online.',
+          style: GoogleFonts.inter(
+            color: AppTheme.onSurfaceVariant,
+            height: 1.4,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        _buildDriverActionButton(
           text: 'Simular Chamado',
           icon: Icons.notifications_active,
           onPressed: _buscarEMostrarCorrida,
@@ -585,7 +712,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               children: [
                 Text(
                   'Buscando $passengerName',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.onSurface),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurface,
+                  ),
                 ),
                 Text(
                   pickupLocation,
@@ -600,13 +731,18 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               color: AppTheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.chat_bubble_outline, color: AppTheme.primary, size: 24),
+            child: const Icon(
+              Icons.chat_bubble_outline,
+              color: AppTheme.primary,
+              size: 24,
+            ),
           ),
         ],
       ),
       const SizedBox(height: 24),
-      CustomButton(
+      _buildDriverActionButton(
         text: 'CHEGUEI NO LOCAL',
+        icon: Icons.location_pin,
         onPressed: () => setState(() => _driverStatus = DriverStatus.embarque),
       ),
     ];
@@ -621,12 +757,20 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           color: AppTheme.secondaryContainer.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.hail, color: AppTheme.secondaryContainer, size: 40),
+        child: const Icon(
+          Icons.hail,
+          color: AppTheme.secondaryContainer,
+          size: 40,
+        ),
       ),
       const SizedBox(height: 16),
       Text(
         'Aguardando embarque...',
-        style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.onSurface),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppTheme.onSurface,
+        ),
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: 8),
@@ -636,7 +780,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: 24),
-      CustomButton(
+      _buildDriverActionButton(
         text: 'INICIAR CORRIDA',
         icon: Icons.play_arrow,
         onPressed: _iniciarCorrida,
@@ -666,7 +810,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               children: [
                 Text(
                   'Faltam 4.2 km (aprox. 12 min)',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.onSurface),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.onSurface,
+                  ),
                 ),
                 Text(
                   'Destino: $dest',
@@ -678,7 +826,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         ],
       ),
       const SizedBox(height: 24),
-      CustomButton(
+      _buildDriverActionButton(
         text: 'FINALIZAR CORRIDA',
         icon: Icons.check_circle,
         onPressed: _finalizarCorrida,
@@ -694,8 +842,14 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         children: [
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(color: AppTheme.background),
-            accountName: Text('João (Motorista)', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
-            accountEmail: Text('Honda CG 160 • ABC-1234', style: GoogleFonts.inter()),
+            accountName: Text(
+              'João (Motorista)',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+            ),
+            accountEmail: Text(
+              'Honda CG 160 • ABC-1234',
+              style: GoogleFonts.inter(),
+            ),
             currentAccountPicture: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -703,13 +857,23 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               ),
               child: const CircleAvatar(
                 backgroundColor: AppTheme.surfaceContainerHigh,
-                child: Icon(Icons.person, color: AppTheme.onSurfaceVariant, size: 40),
+                child: Icon(
+                  Icons.person,
+                  color: AppTheme.onSurfaceVariant,
+                  size: 40,
+                ),
               ),
             ),
           ),
           ListTile(
             leading: const Icon(Icons.exit_to_app, color: AppTheme.error),
-            title: Text('Sair', style: GoogleFonts.inter(color: AppTheme.error, fontWeight: FontWeight.bold)),
+            title: Text(
+              'Sair',
+              style: GoogleFonts.inter(
+                color: AppTheme.error,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             onTap: _logout,
           ),
         ],

@@ -1,31 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme.dart';
+import '../core/providers/service_providers.dart';
+import '../core/dev/dev_utils.dart';
+import 'driver_home_screen.dart';
 import 'home_screen.dart';
 
-class ProfileSetupScreen extends StatefulWidget {
+class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
 
   @override
-  State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
+  ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
 }
 
-class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
+class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _carYearController = TextEditingController();
+  final TextEditingController _carDoorsController = TextEditingController();
+  
+  String _selectedRole = 'passenger';
   String _selectedPayment = 'pix';
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  void _onSaveAndContinue() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
+  bool _hasEar = false;
+  bool _isDefinitiveCnh = false;
+  bool _hasAc = false;
+  bool _backgroundCheckConsent = false;
+
+  void _autoFill() {
+    setState(() {
+      _nameController.text = FakeData.fullName();
+      _emailController.text = FakeData.email();
+      _cpfController.text = FakeData.cpf();
+      if (_selectedRole == 'driver') {
+        _carYearController.text = FakeData.carYear();
+        _carDoorsController.text = FakeData.carDoors();
+        _hasAc = true;
+        _isDefinitiveCnh = true;
+        _backgroundCheckConsent = true;
+      }
+    });
+  }
+
+  Future<void> _onSaveAndContinue() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _errorMessage = 'Por favor, insira seu nome.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final repo = ref.read(firestoreUserRepositoryProvider);
+
+      if (_selectedRole == 'passenger') {
+        await repo.setRole('passenger');
+      } else {
+        await repo.setRole(
+          'driver',
+          cpf: _cpfController.text.trim(),
+          cnh: _isDefinitiveCnh ? 'DEFINITIVA' : 'PPD',
+        );
+      }
+
+      await repo.updateProfile(name: name);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _selectedRole == 'driver'
+              ? const DriverHomeScreen()
+              : const HomeScreen(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      });
+    }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _cpfController.dispose();
+    _carYearController.dispose();
+    _carDoorsController.dispose();
     super.dispose();
   }
 
@@ -52,7 +125,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 24.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -87,8 +163,57 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ],
                       ),
                     ),
-                    
-                    const SizedBox(height: 48),
+
+                    const SizedBox(height: 24),
+                    Text(
+                      'Selecione seu perfil',
+                      style: GoogleFonts.inter(
+                        color: AppTheme.onSurfaceVariant,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildRoleOption(
+                            id: 'passenger',
+                            title: 'Passageiro',
+                            icon: Icons.person_outline,
+                            selected: _selectedRole == 'passenger',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildRoleOption(
+                            id: 'driver',
+                            title: 'Motorista',
+                            icon: Icons.drive_eta,
+                            selected: _selectedRole == 'driver',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    if (isDev)
+                      OutlinedButton.icon(
+                        onPressed: _autoFill,
+                        icon: const Icon(Icons.auto_fix_high, size: 16),
+                        label: Text(
+                          'DEV: Auto-fill',
+                          style: GoogleFonts.inter(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.primary,
+                          side: BorderSide(
+                            color: AppTheme.primary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 24),
 
                     // Avatar Uploader
                     Center(
@@ -102,7 +227,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                               color: AppTheme.surfaceContainerHigh,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppTheme.outlineVariant.withValues(alpha: 0.4),
+                                color: AppTheme.outlineVariant.withValues(
+                                  alpha: 0.4,
+                                ),
                                 width: 2,
                                 style: BorderStyle.solid,
                               ),
@@ -124,7 +251,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: const LinearGradient(
-                                  colors: [AppTheme.primary, AppTheme.primaryContainer],
+                                  colors: [
+                                    AppTheme.primary,
+                                    AppTheme.primaryContainer,
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -155,17 +285,59 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                     // Input Fields
                     _buildInputLabel('FULL NAME'),
-                    _buildTextField(_nameController, 'Enter your name', TextInputType.name),
+                    _buildTextField(
+                      _nameController,
+                      'Enter your name',
+                      TextInputType.name,
+                    ),
                     const SizedBox(height: 24),
-                    
+
                     _buildInputLabel('EMAIL ADDRESS'),
-                    _buildTextField(_emailController, 'name@example.com', TextInputType.emailAddress),
+                    _buildTextField(
+                      _emailController,
+                      'name@example.com',
+                      TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 24),
+
+                    _buildInputLabel('CPF'),
+                    _buildTextField(
+                      _cpfController,
+                      '000.000.000-00',
+                      TextInputType.number,
+                    ),
                     const SizedBox(height: 32),
+
+                    if (_selectedRole == 'driver') ...[
+                      const Divider(height: 48),
+                      Text(
+                        'DADOS DO VEÍCULO E CNH',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildInputLabel('ANO DE FABRICAÇÃO'),
+                      _buildTextField(_carYearController, 'Ex: 2016', TextInputType.number),
+                      const SizedBox(height: 24),
+                      _buildInputLabel('QUANTIDADE DE PORTAS'),
+                      _buildTextField(_carDoorsController, 'Ex: 4', TextInputType.number),
+                      const SizedBox(height: 24),
+
+                      _buildSwitch('Veículo possui Ar-Condicionado?', _hasAc, (v) => setState(() => _hasAc = v)),
+                      _buildSwitch('CNH é Definitiva (Não PPD)?', _isDefinitiveCnh, (v) => setState(() => _isDefinitiveCnh = v)),
+                      _buildSwitch('CNH possui EAR (Atividade Remun.)?', _hasEar, (v) => setState(() => _hasEar = v)),
+                      _buildSwitch('Autorizo a checagem de antecedentes', _backgroundCheckConsent, (v) => setState(() => _backgroundCheckConsent = v)),
+                      const SizedBox(height: 32),
+                    ],
 
                     // Payment Methods Bento
                     _buildInputLabel('PREFERRED PAYMENT'),
                     const SizedBox(height: 12),
-                    
+
                     _buildPaymentOption(
                       id: 'pix',
                       title: 'Pix',
@@ -189,13 +361,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       icon: Icons.payments,
                       color: AppTheme.secondary,
                     ),
-                    
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorMessage!,
+                        style: GoogleFonts.inter(
+                          color: Colors.redAccent,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 100), // Padding for fixed bottom CTA
                   ],
                 ),
               ),
             ),
-            
+
             // Fixed Bottom Action Area
             Container(
               padding: const EdgeInsets.all(24.0),
@@ -228,17 +409,70 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       borderRadius: BorderRadius.circular(9999),
                     ),
                   ),
-                  onPressed: _onSaveAndContinue,
-                  child: Text(
-                    'SAVE AND CONTINUE',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: AppTheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      letterSpacing: 2,
-                    ),
-                  ),
+                  onPressed: _isLoading ? null : _onSaveAndContinue,
+                  child: _isLoading
+                      ? const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: AppTheme.onPrimaryContainer,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          'SAVE AND CONTINUE',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: AppTheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: 2,
+                          ),
+                        ),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleOption({
+    required String id,
+    required String title,
+    required IconData icon,
+    required bool selected,
+  }) {
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = id),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppTheme.surfaceContainerHigh
+              : AppTheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? AppTheme.primary : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: selected ? AppTheme.primary : AppTheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                color: selected
+                    ? AppTheme.onSurface
+                    : AppTheme.onSurfaceVariant,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -262,7 +496,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, TextInputType type) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint,
+    TextInputType type,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
@@ -281,7 +519,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             color: AppTheme.onSurfaceVariant.withValues(alpha: 0.3),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -295,7 +536,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     required Color color,
   }) {
     final isSelected = _selectedPayment == id;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -305,10 +546,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.surfaceContainerHigh : AppTheme.surfaceContainer,
+          color: isSelected
+              ? AppTheme.surfaceContainerHigh
+              : AppTheme.surfaceContainer,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color.withValues(alpha: 0.5) : Colors.transparent,
+            color: isSelected
+                ? color.withValues(alpha: 0.5)
+                : Colors.transparent,
             width: 2,
           ),
         ),
@@ -353,7 +598,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? color : AppTheme.outlineVariant.withValues(alpha: 0.3),
+                  color: isSelected
+                      ? color
+                      : AppTheme.outlineVariant.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -373,6 +620,23 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSwitch(String label, bool value, ValueChanged<bool> onChanged) {
+    return SwitchListTile(
+      title: Text(
+        label,
+        style: GoogleFonts.inter(
+          color: AppTheme.onSurface,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+        ),
+      ),
+      activeThumbColor: AppTheme.primary,
+      contentPadding: EdgeInsets.zero,
+      value: value,
+      onChanged: onChanged,
     );
   }
 }

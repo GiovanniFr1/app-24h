@@ -1,14 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'core/theme.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -28,10 +28,7 @@ class Acre24hApp extends StatelessWidget {
       title: 'Acre 24h',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: Firebase.apps.isNotEmpty &&
-              FirebaseAuth.instance.currentUser != null
-          ? const HomeScreen()
-          : const LoginScreen(),
+      home: const AuthGate(),
     );
   }
 }
