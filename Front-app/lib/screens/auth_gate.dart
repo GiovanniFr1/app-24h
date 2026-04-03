@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/providers/service_providers.dart';
@@ -11,61 +12,42 @@ class AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final service = ref.read(firebaseAuthServiceProvider);
-    final user = service.currentUser;
-
-    if (user == null) {
-      return const LoginScreen();
-    }
-
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: ref.read(apiAuthRepositoryProvider).fetchDashboard().then<Map<String, dynamic>?>((val) => val).catchError((_) => null),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 72,
-                      color: Colors.redAccent,
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Não foi possível carregar o perfil do usuário.',
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: null,
-                      child: const Text('Tentar novamente'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
+        final user = authSnapshot.data;
+        if (user == null) {
+          return const LoginScreen();
         }
 
-        final profile = snapshot.data;
-        if (profile == null) {
-          return const ProfileSetupScreen();
-        }
+        return FutureBuilder<Map<String, dynamic>?>(
+          future: ref.read(firestoreUserRepositoryProvider).getUserProfile(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
 
-        final isDriver =
-            (profile['is_driver'] as bool?) ??
-            (profile['role'] as String?)?.toLowerCase() == 'driver';
+            final profile = snapshot.data;
+            if (profile == null) {
+              // Documento ainda não existe no Firestore (Cloud Function pode estar em delay)
+              // ou é um novo usuário que ainda não configurou o perfil.
+              return const ProfileSetupScreen();
+            }
 
-        return isDriver ? const DriverHomeScreen() : const HomeScreen();
+            final role = (profile['role'] as String?)?.toLowerCase();
+            return role == 'driver'
+                ? const DriverHomeScreen()
+                : const HomeScreen();
+          },
+        );
       },
     );
   }

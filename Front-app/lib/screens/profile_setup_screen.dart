@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme.dart';
 import '../core/providers/service_providers.dart';
+import '../core/dev/dev_utils.dart';
 import 'driver_home_screen.dart';
 import 'home_screen.dart';
-import '../models/kyc_models.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -31,10 +31,25 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   bool _hasAc = false;
   bool _backgroundCheckConsent = false;
 
+  void _autoFill() {
+    setState(() {
+      _nameController.text = FakeData.fullName();
+      _emailController.text = FakeData.email();
+      _cpfController.text = FakeData.cpf();
+      if (_selectedRole == 'driver') {
+        _carYearController.text = FakeData.carYear();
+        _carDoorsController.text = FakeData.carDoors();
+        _hasAc = true;
+        _isDefinitiveCnh = true;
+        _backgroundCheckConsent = true;
+      }
+    });
+  }
+
   Future<void> _onSaveAndContinue() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _errorMessage = 'Please enter your name.');
+      setState(() => _errorMessage = 'Por favor, insira seu nome.');
       return;
     }
 
@@ -44,48 +59,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     });
 
     try {
-      final service = ref.read(firebaseAuthServiceProvider);
-      final user = service.currentUser;
-
-      if (user == null) {
-        throw Exception('No authenticated user found.');
-      }
+      final repo = ref.read(firestoreUserRepositoryProvider);
 
       if (_selectedRole == 'passenger') {
-        final payload = PassengerRegistrationPayload(
-          cpf: _cpfController.text.trim(),
-          fullName: name,
-          email: user.email ?? '',
-          phoneVerified: user.phoneNumber ?? '',
-          isOver18: true, // Automático por ora até ter tela de birthdate
-          defaultPaymentMethod: _selectedPayment,
-        );
-        final err = payload.validateClientSide();
-        if (err != null) throw Exception(err);
-
-        await ref.read(apiAuthRepositoryProvider).registerPassenger(payload);
+        await repo.setRole('passenger');
       } else {
-        final payload = DriverKycPayload(
+        await repo.setRole(
+          'driver',
           cpf: _cpfController.text.trim(),
-          fullyName: name,
-          phoneVerified: user.phoneNumber ?? '',
-          cnhFilePath: 'mock_cnh.jpg', 
-          selfieFilePath: 'mock_selfie.jpg', 
-          hasEar: _hasEar,
-          isDefinitiveCnh: _isDefinitiveCnh,
-          backgroundCheckConsent: _backgroundCheckConsent,
-          crlvFilePath: 'mock_crlv.pdf', 
-          carYear: int.tryParse(_carYearController.text.trim()) ?? 0,
-          carDoors: int.tryParse(_carDoorsController.text.trim()) ?? 0,
-          hasAc: _hasAc,
-          seatCapacity: 5,
-          isNotPickupOrVan: true,
+          cnh: _isDefinitiveCnh ? 'DEFINITIVA' : 'PPD',
         );
-        final err = payload.validateClientSide();
-        if (err != null) throw Exception(err);
-
-        await ref.read(apiAuthRepositoryProvider).registerDriverKyc(payload);
       }
+
+      await repo.updateProfile(name: name);
 
       if (!mounted) return;
 
@@ -209,7 +195,25 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 16),
+
+                    if (isDev)
+                      OutlinedButton.icon(
+                        onPressed: _autoFill,
+                        icon: const Icon(Icons.auto_fix_high, size: 16),
+                        label: Text(
+                          'DEV: Auto-fill',
+                          style: GoogleFonts.inter(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.primary,
+                          side: BorderSide(
+                            color: AppTheme.primary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 24),
 
                     // Avatar Uploader
                     Center(
@@ -629,7 +633,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           fontSize: 13,
         ),
       ),
-      activeColor: AppTheme.primary,
+      activeThumbColor: AppTheme.primary,
       contentPadding: EdgeInsets.zero,
       value: value,
       onChanged: onChanged,

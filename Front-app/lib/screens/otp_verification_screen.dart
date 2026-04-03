@@ -67,7 +67,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
       Map<String, dynamic>? profile;
       try {
-        profile = await ref.read(apiAuthRepositoryProvider).fetchDashboard();
+        profile = await ref.read(firestoreUserRepositoryProvider).getUserProfile();
       } catch (_) {
         profile = null;
       }

@@ -29,15 +29,8 @@ export const setRole = onCall(async (request) => {
     throw new HttpsError("unauthenticated", "Must be authenticated.");
   }
 
-  const data = request.data as {
-    role: string;
-    name?: string;
-    email?: string;
-    phone?: string;
-    cpf?: string;
-    cnh?: string;
-  };
-  const validRoles = ["passenger", "driver"];
+  const data = request.data as {role: string; cpf?: string; cnh?: string};
+  const validRoles = ["passenger", "driver", "admin"];
 
   if (!validRoles.includes(data.role)) {
     throw new HttpsError("invalid-argument", "Role must be passenger or driver.");
@@ -47,35 +40,33 @@ export const setRole = onCall(async (request) => {
 
   await admin.auth().setCustomUserClaims(uid, {role: data.role});
 
-  const update: Record<string, unknown> = {
-    role: data.role,
-  };
-
-  if (data.name) {
-    update.name = data.name;
-  }
-  if (data.email) {
-    update.email = data.email;
-  }
-  if (data.cpf) {
-    update.cpf = data.cpf;
-  }
-  if (data.cnh) {
-    update.cnh = data.cnh;
-  }
-  if (data.phone) {
-    update.phone = data.phone;
-  }
+  const update: Record<string, unknown> = {role: data.role};
 
   if (data.role === "driver") {
+    update.cpf = data.cpf ?? "";
+    update.cnh = data.cnh ?? "";
     update.approvalStatus = "pending";
     update.rejectionReason = null;
     update.isVerified = false;
   }
 
-  await db.collection("users").doc(uid).set(update, {merge: true});
+  await db.collection("users").doc(uid).update(update);
 
   return {success: true};
+});
+
+/**
+ * Callable: returns the current user's profile from Firestore.
+ * Use this instead of reading Firestore directly on the client.
+ */
+export const getMyProfile = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be authenticated.");
+  }
+
+  const doc = await db.collection("users").doc(request.auth.uid).get();
+  if (!doc.exists) return null;
+  return doc.data() ?? null;
 });
 
 /**
